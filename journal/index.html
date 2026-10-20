@@ -57,7 +57,7 @@
         `<span>Сейчас на сайте версия</span><b>№${esc(h.live)}</b><span class="meta">${esc(live.time)}</span>` +
         `<a href="../">Открыть сайт →</a>`;
       document.getElementById('list').innerHTML = h.releases.map(r => {
-        const st = r.id === h.live ? 'live' : r.status;
+        const st = r.id === h.live ? 'live' : (r.status === 'failed' ? 'failed' : 'done');
         const badge = r.type === 'rollback' && st !== 'live' && st !== 'failed'
           ? `<span class="badge rollback">Откат</span>` : `<span class="badge ${st}">${labels[st] || st}</span>`;
         const links = gh ? [
