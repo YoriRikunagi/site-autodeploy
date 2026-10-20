@@ -1,0 +1,11 @@
+{
+  "id": "006",
+  "type": "rollback",
+  "from": "003",
+  "prev": "005",
+  "time": "20.10.2026 16:52",
+  "message": "Откат на версию №003",
+  "author": "YoriRikunagi",
+  "sha": "f698adf4da368efb93b5efb93ec53eec51850836",
+  "status": "live"
+}
