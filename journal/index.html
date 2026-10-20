@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Журнал выкладок</title>
+  <style>
+    :root { --bg:#f5f6f8; --card:#fff; --ink:#1d2129; --muted:#6b7280; --line:#e5e7eb;
+            --ok:#16a34a; --ok-bg:#dcfce7; --bad:#dc2626; --bad-bg:#fee2e2; --info:#2563eb; --info-bg:#dbeafe; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#0f1115; --card:#181b21; --ink:#e5e7eb; --muted:#9ca3af; --line:#2a2f37;
+              --ok:#4ade80; --ok-bg:#12301d; --bad:#f87171; --bad-bg:#3a1515; --info:#60a5fa; --info-bg:#152443; }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 -apple-system,"Segoe UI",Roboto,sans-serif; }
+    .wrap { max-width:860px; margin:0 auto; padding:32px 16px 64px; }
+    h1 { font-size:26px; margin:0 0 6px; }
+    .sub { color:var(--muted); margin:0 0 24px; }
+    .now { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:20px;
+           display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+    .now b { font-size:20px; }
+    .now a { margin-left:auto; }
+    .list { display:flex; flex-direction:column; gap:10px; }
+    .item { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 18px;
+            display:grid; grid-template-columns:64px 1fr auto; gap:4px 16px; align-items:center; }
+    .num { font-weight:700; font-size:18px; color:var(--muted); grid-row:span 2; }
+    .msg { font-weight:600; }
+    .meta { color:var(--muted); font-size:13px; }
+    .meta a { color:var(--muted); }
+    .badge { grid-row:span 2; font-size:12px; font-weight:600; padding:4px 10px; border-radius:999px; white-space:nowrap; }
+    .live { background:var(--ok-bg); color:var(--ok); }
+    .done { background:var(--line); color:var(--muted); }
+    .failed { background:var(--bad-bg); color:var(--bad); }
+    .rollback { background:var(--info-bg); color:var(--info); }
+    a { color:var(--info); }
+    .how { margin-top:28px; color:var(--muted); font-size:14px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 20px; }
+    .how ol { margin:8px 0 0; padding-left:20px; }
+    @media (max-width:560px) { .item { grid-template-columns:44px 1fr; } .badge { grid-row:auto; grid-column:2; justify-self:start; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Журнал выкладок</h1>
+    <p class="sub">Каждая правка сайта сохраняется отдельной версией. К любой можно вернуться.</p>
+    <div class="now" id="now">Загрузка…</div>
+    <div class="list" id="list"></div>
+    <div class="how" id="how"></div>
+  </div>
+  <script>
+    const labels = { live: 'На сайте сейчас', done: 'Выложено', failed: 'Не прошла проверку, сайт вернулся сам', checking: 'Проверяется' };
+    const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+    fetch('history.json?' + Date.now()).then(r => r.json()).then(h => {
+      const gh = h.repo ? 'https://github.com/' + h.repo : '';
+      const live = h.releases.find(r => r.id === h.live) || {};
+      document.getElementById('now').innerHTML =
+        `<span>Сейчас на сайте версия</span><b>№${esc(h.live)}</b><span class="meta">${esc(live.time)}</span>` +
+        `<a href="../">Открыть сайт →</a>`;
+      document.getElementById('list').innerHTML = h.releases.map(r => {
+        const st = r.id === h.live ? 'live' : r.status;
+        const badge = r.type === 'rollback' && st !== 'live' && st !== 'failed'
+          ? `<span class="badge rollback">Откат</span>` : `<span class="badge ${st}">${labels[st] || st}</span>`;
+        const links = gh ? [
+          r.sha && r.type === 'deploy' ? `<a href="${gh}/commit/${esc(r.sha)}">что поменялось</a>` : '',
+          `<a href="${gh}/tree/backups/releases/${esc(r.id)}/files">файлы версии</a>`
+        ].filter(Boolean).join(' · ') : '';
+        return `<div class="item"><div class="num">№${esc(r.id)}</div>
+          <div class="msg">${esc(r.message || 'Правка без описания')}</div>${badge}
+          <div class="meta">${esc(r.time)}${r.author ? ' · ' + esc(r.author) : ''}${links ? ' · ' + links : ''}</div></div>`;
+      }).join('');
+      document.getElementById('how').innerHTML = `<b>Как вернуть прошлую версию</b><ol>
+        <li>Откройте <a href="${gh}/actions/workflows/deploy.yml">выкладку в GitHub</a> и нажмите «Run workflow».</li>
+        <li>Впишите номер версии из этого журнала и нажмите зелёную кнопку.</li>
+        <li>Через минуту на сайте будет выбранная версия, а в журнале появится запись об откате.</li></ol>`;
+    }).catch(() => { document.getElementById('now').textContent = 'Журнал пока пуст'; });
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "extends": ["html-validate:recommended"],
+  "rules": {
+    "no-trailing-whitespace": "off",
+    "void-style": "off",
+    "no-inline-style": "off",
+    "prefer-native-element": "off",
+    "no-redundant-for": "off",
+    "input-missing-label": "off",
+    "text-content": "off",
+    "attribute-boolean-style": "off",
+    "doctype-style": "off"
+  }
+}
