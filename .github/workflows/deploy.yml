@@ -32,8 +32,8 @@ jobs:
     if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
       - run: ./scripts/check-site.sh site
@@ -49,7 +49,7 @@ jobs:
       name: github-pages
       url: ${{ env.SITE_URL }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -75,7 +75,7 @@ jobs:
           ./scripts/release.sh new | tee -a "$GITHUB_OUTPUT"
           REPO=${{ github.repository }} ./scripts/release.sh build "$(grep '^id=' $GITHUB_OUTPUT | tail -1 | cut -d= -f2)" _out
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: _out
           name: release-${{ steps.rel.outputs.id }}
@@ -102,7 +102,7 @@ jobs:
           REPO=${{ github.repository }} ./scripts/release.sh build "${{ steps.rel.outputs.prev }}" _back
           echo "::warning::Версия №${{ steps.rel.outputs.id }} сломала сайт. Возвращаем №${{ steps.rel.outputs.prev }}"
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         if: failure() && steps.back.outcome == 'success'
         with:
           path: _back
